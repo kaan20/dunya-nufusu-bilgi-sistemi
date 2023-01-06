@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anasayfa</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <script src="https://kit.fontawesome.com/c20485228a.js" crossorigin="anonymous"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300&display=swap" rel="stylesheet">
+    <style type="text/css">
+        .chart{
+            width: 700px;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <section id="menu">
+        <div id="logo">World Population</div>
+        <nav>
+          <a href="index.html">Main Page</a>
+          <a href="giris.html">Giris</a>
+        </nav>
+    </section>
+    <section id="solmenu">
+
+        <nav id="solmenunav" >
+            <ul id="solmenunavul">
+                <li id="solmenunavul1">
+                    <a href="Map1.html" id="linka1">Current World Population</a>
+                </li>
+                <li id="solmenunavul2" >
+                    <a href="" id="linka2">Born and Death Statistics</a>
+                </li>
+                <li id="solmenunavul3" >
+                  <a href="foodandwater.html" id="linka3">Food And Water Source effects</a>
+                </li>
+                <li id="solmenunavul4">
+                  <a href="Erkekadın.html" id="linka4">Man And Woman Death Rate</a>
+                </li>
+                <li id="solmenunavul5">
+                  <a href="Aclik.html" id="linka5">Hunger</a>
+                </li>
+                <li id="solmenunavul6">
+                  <a href="gıda.html" id="linka6">Gida</a>
+                </li> 
+                
+
+            </ul>
+        </nav>
+        <main>
+        </main>
+
+    </section>
+    <h1 id="anan">Dogum ve Ölüm</h1>
+    <section>
+      <div class="chartBox">
+        <canvas id="myChart"></canvas>
+      </div>
+      
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      
+      <script>
+        const ctx = document.getElementById('myChart');
+        
+        
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            datasets: [{
+              label: '# of Votes',
+              data: [12, 19, 3, 5, 2, 3],
+              borderWidth: 1
+            }]
+            
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+
+
+        // <block:data:2>
+const data = [];
+const data2 = [];
+let prev = 100;
+let prev2 = 80;
+for (let i = 0; i < 1000; i++) {
+  prev += 5 - Math.random() * 10;
+  data.push({x: i, y: prev});
+  prev2 += 5 - Math.random() * 10;
+  data2.push({x: i, y: prev2});
+}
+// </block:data>
+
+// <block:animation:1>
+let easing = helpers.easingEffects.easeOutQuad;
+let restart = false;
+const totalDuration = 5000;
+const duration = (ctx) => easing(ctx.index / data.length) * totalDuration / data.length;
+const delay = (ctx) => easing(ctx.index / data.length) * totalDuration;
+const previousY = (ctx) => ctx.index === 0 ? ctx.chart.scales.y.getPixelForValue(100) : ctx.chart.getDatasetMeta(ctx.datasetIndex).data[ctx.index - 1].getProps(['y'], true).y;
+const animation = {
+  x: {
+    type: 'number',
+    easing: 'linear',
+    duration: duration,
+    from: NaN, // the point is initially skipped
+    delay(ctx) {
+      if (ctx.type !== 'data' || ctx.xStarted) {
+        return 0;
+      }
+      ctx.xStarted = true;
+      return delay(ctx);
+    }
+  },
+  y: {
+    type: 'number',
+    easing: 'linear',
+    duration: duration,
+    from: previousY,
+    delay(ctx) {
+      if (ctx.type !== 'data' || ctx.yStarted) {
+        return 0;
+      }
+      ctx.yStarted = true;
+      return delay(ctx);
+    }
+  }
+};
+// </block:animation>
+
+// <block:config:0>
+const config = {
+  type: 'line',
+  data: {
+    datasets: [{
+      borderColor: Utils.CHART_COLORS.red,
+      borderWidth: 1,
+      radius: 0,
+      data: data,
+    },
+    {
+      borderColor: Utils.CHART_COLORS.blue,
+      borderWidth: 1,
+      radius: 0,
+      data: data2,
+    }]
+  },
+  options: {
+    animation,
+    interaction: {
+      intersect: false
+    },
+    plugins: {
+      legend: false,
+      title: {
+        display: true,
+        text: () => easing.name
+      }
+    },
+    scales: {
+      x: {
+        type: 'linear'
+      }
+    }
+  }
+};
+// </block:config>
+
+// <block:actions:2>
+function restartAnims(chart) {
+  chart.stop();
+  const meta0 = chart.getDatasetMeta(0);
+  const meta1 = chart.getDatasetMeta(1);
+  for (let i = 0; i < data.length; i++) {
+    const ctx0 = meta0.controller.getContext(i);
+    const ctx1 = meta1.controller.getContext(i);
+    ctx0.xStarted = ctx0.yStarted = false;
+    ctx1.xStarted = ctx1.yStarted = false;
+  }
+  chart.update();
+}
+
+const actions = [
+  {
+    name: 'easeOutQuad',
+    handler(chart) {
+      easing = helpers.easingEffects.easeOutQuad;
+      restartAnims(chart);
+    }
+  },
+  {
+    name: 'easeOutCubic',
+    handler(chart) {
+      easing = helpers.easingEffects.easeOutCubic;
+      restartAnims(chart);
+    }
+  },
+  {
+    name: 'easeOutQuart',
+    handler(chart) {
+      easing = helpers.easingEffects.easeOutQuart;
+      restartAnims(chart);
+    }
+  },
+  {
+    name: 'easeOutQuint',
+    handler(chart) {
+      easing = helpers.easingEffects.easeOutQuint;
+      restartAnims(chart);
+    }
+  },
+  {
+    name: 'easeInQuad',
+    handler(chart) {
+      easing = helpers.easingEffects.easeInQuad;
+      restartAnims(chart);
+    }
+  },
+  {
+    name: 'easeInCubic',
+    handler(chart) {
+      easing = helpers.easingEffects.easeInCubic;
+      restartAnims(chart);
+    }
+  },
+  {
+    name: 'easeInQuart',
+    handler(chart) {
+      easing = helpers.easingEffects.easeInQuart;
+      restartAnims(chart);
+    }
+  },
+  {
+    name: 'easeInQuint',
+    handler(chart) {
+      easing = helpers.easingEffects.easeInQuint;
+      restartAnims(chart);
+    }
+  },
+];
+// </block:actions>
+
+module.exports = {
+  config,
+  actions
+};
+      </script>
+  </section>
+<section>
+
+<canvas id="myChart" style="width:300%;max-width:600px"></canvas>
+
+<script>
+var xValues = [100,200,300,400,500,600,700,800,900,1000];
+
+new Chart("myChart", {
+type: "line",
+data: {
+labels: xValues,
+datasets: [{ 
+  data: [860,1140,1060,1060,1070,1110,1330,2210,7830,2478],
+  borderColor: "red",
+  fill: false
+}, { 
+  data: [1600,1700,1700,1900,2000,2700,4000,5000,6000,7000],
+  borderColor: "green",
+  fill: false
+}]
+},
+options: {
+legend: {display: false}
+}
+});
+</script>
+</section>
+</body>
+</html>
