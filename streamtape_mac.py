@@ -1,6 +1,7 @@
 import time
 import os
 import random
+import threading
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
@@ -10,16 +11,18 @@ from fake_useragent import UserAgent
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import WebDriverException
+import chromedriver_autoinstaller
 
-chromedriver_path = os.getenv('CHROMEDRIVER_PATH')
+chromedriver_autoinstaller.install()
+
 # Danh sách các liên kết
 link_list = [
-"https://streamtape.com/v/r8d7y1gbg2ib22J/OND18002.mp4",
-"https://streamtape.com/v/q9MAlR7JyKHzVP3/BOYST0247.mp4",
-"https://streamtape.com/v/XkqbbZeW7WuDY3Z/TikTok_Id_taka2003cter_2025_01_27_15_44_57.mp4",
-"https://streamtape.com/v/oWeGQMq7MKFJJyY/TikTok_Id_abskwkws_2025.02.13_07-26-15.mp4",
-"https://streamtape.com/v/vDpjlyaGoPtD14/HAPPY_NEW_YEAR_ASIAN_Lunar_New_Year_BIG_UPDATE.%EF%BF%BD%EF%BF%BDSTRAIGHT_07.mp4",
-"https://streamtape.com/v/jaK9zOOZyzUzeZD/NEW_CLIP_UPDATE_FUCK_STRAIGH_GUY_TK1107.mp4",
+    "https://streamtape.com/v/r8d7y1gbg2ib22J/OND18002.mp4",
+    "https://streamtape.com/v/q9MAlR7JyKHzVP3/BOYST0247.mp4",
+    "https://streamtape.com/v/XkqbbZeW7WuDY3Z/TikTok_Id_taka2003cter_2025_01_27_15_44_57.mp4",
+    "https://streamtape.com/v/oWeGQMq7MKFJJyY/TikTok_Id_abskwkws_2025.02.13_07-26-15.mp4",
+    "https://streamtape.com/v/vDpjlyaGoPtD14/HAPPY_NEW_YEAR_ASIAN_Lunar_New_Year_BIG_UPDATE.%EF%BF%BD%EF%BF%BDSTRAIGHT_07.mp4",
+    "https://streamtape.com/v/jaK9zOOZyzUzeZD/NEW_CLIP_UPDATE_FUCK_STRAIGH_GUY_TK1107.mp4",
     "https://streamtape.com/v/8BdO9Mweaztog0j/TK_taka2003cter_2025.02.15_14-45-52.mp4",
     "https://streamtape.com/v/29aKmLYQ8KSWgB/TikTok_Id_inuya299_2025.02.16_14-36-24.mp4",
     "https://streamtape.com/v/8vBl161rowT8jm/TikTok_Id_inuya299_2025_02_07_14_54_05.mp4",
@@ -32,31 +35,11 @@ link_list = [
     "https://streamtape.com/v/BjM3DBebvvTyker/TikTok_Id_inuya299_2025_02_01_05_02_26.mp4"
 ]
 
-import chromedriver_autoinstaller
-
-
-chromedriver_autoinstaller.install()
-
-time.sleep(random.uniform(60, 120))
 # Lựa chọn 3 liên kết ngẫu nhiên
-selected_links = random.sample(link_list, 1)
+selected_links = random.sample(link_list, 3)
 
-# Khởi tạo driver
-options = webdriver.ChromeOptions()
-options.add_argument("--disable-blink-features=AutomationControlled")
-ua = UserAgent()
-options.add_argument(f"user-agent={ua.random}")
-options.add_argument('--start-maximized')
-options.add_argument('--no-sandbox')
-options.add_argument('--disable-dev-shm-usage')
-options.add_argument('--disable-gpu')
-driver = webdriver.Chrome(options=options)
-#driver = uc.Chrome(options=options)
-#driver = uc.Chrome(executable_path="/Users/runner/hostedtoolcache/setup-chrome/chromium/132.0.6834.159/arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing", options=options)
-driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-
-# Di chuyển chuột ngẫu nhiên
-def random_mouse_move():
+# Hàm để di chuyển chuột ngẫu nhiên
+def random_mouse_move(driver):
     try:
         window_width = driver.execute_script("return window.innerWidth;")
         window_height = driver.execute_script("return window.innerHeight;")
@@ -70,16 +53,28 @@ def random_mouse_move():
         driver.execute_script("window.scrollBy(0, 250);")
         time.sleep(1)
 
+# Hàm xử lý mỗi liên kết
+def process_link(link):
+    # Khởi tạo driver cho từng thread
+    options = webdriver.ChromeOptions()
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    ua = UserAgent()
+    options.add_argument(f"user-agent={ua.random}")
+    options.add_argument('--start-maximized')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--disable-gpu')
 
+    driver = webdriver.Chrome(options=options)
+    driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
-# Lặp qua từng liên kết đã chọn
-for link in selected_links:
+    # Lặp qua từng liên kết đã chọn
     driver.get("https://www.dailymotion.com/playlist/x9dd5m")
     time.sleep(random.uniform(60, 130))
     driver.save_screenshot("screenshot_{}.png".format(time.time()))
     driver.get(link)
     time.sleep(random.uniform(1, 30))  # Thời gian nghỉ ngẫu nhiên giữa các liên kết
-    random_mouse_move()
+    random_mouse_move(driver)
 
     # Chờ video tải
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "plyr")))
@@ -99,8 +94,8 @@ for link in selected_links:
         }
     """)
     time.sleep(5)
-    random_mouse_move()
-    random_mouse_move()
+    random_mouse_move(driver)
+    random_mouse_move(driver)
 
     # Tải video
     download_button_xpath = '//a[@id="downloadvideo"]'
@@ -109,7 +104,7 @@ for link in selected_links:
             download_button = driver.find_element(By.XPATH, download_button_xpath)
             download_button.click()
             time.sleep(random.uniform(1, 3))
-            random_mouse_move()
+            random_mouse_move(driver)
             driver.save_screenshot("screenshot_{}.png".format(time.time()))
         except Exception as e:
             print(f"Error: {e}")
@@ -118,4 +113,21 @@ for link in selected_links:
     driver.save_screenshot("screenshot_{}.png".format(time.time()))
     time.sleep(random.uniform(200, 260))  # Thời gian nghỉ ngẫu nhiên giữa các lượt
 
-driver.quit()
+    driver.quit()
+
+# Hàm chính để chạy các thread
+def main():
+    threads = []
+
+    # Tạo và bắt đầu các thread
+    for link in selected_links:
+        thread = threading.Thread(target=process_link, args=(link,))
+        threads.append(thread)
+        thread.start()
+
+    # Đợi tất cả các thread hoàn thành
+    for thread in threads:
+        thread.join()
+
+if __name__ == "__main__":
+    main()
