@@ -112,10 +112,20 @@ def process_link(link):
 def main():
     threads = []
     
-    for link in selected_links:
+    #for link in selected_links:
+     #   thread = threading.Thread(target=process_link, args=(link,))
+      #  threads.append(thread)
+       # thread.start()
+    for i, link in enumerate(selected_links):
         thread = threading.Thread(target=process_link, args=(link,))
         threads.append(thread)
         thread.start()
+        
+        # Thêm delay ngẫu nhiên giữa các lần bắt đầu thread
+        if i < len(selected_links) - 1:
+            delay = random.uniform(3, 7)  # Thêm khoảng delay giữa các thread (3 đến 7 giây)
+            print(f"Waiting for {delay} seconds before starting next thread...")
+            time.sleep(delay)
     
     # Đợi tất cả các thread hoàn thành
     for thread in threads:
