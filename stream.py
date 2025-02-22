@@ -104,7 +104,7 @@ def process_link(link):
             break
 
     driver.save_screenshot("screenshot_{}.png".format(time.time()))
-    time.sleep(random.uniform(300, 360))  # Thời gian nghỉ ngẫu nhiên giữa các lượt
+    time.sleep(random.uniform(250, 300))  # Thời gian nghỉ ngẫu nhiên giữa các lượt
 
     driver.quit()
 
