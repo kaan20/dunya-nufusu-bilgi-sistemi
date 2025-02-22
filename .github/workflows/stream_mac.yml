@@ -1,0 +1,53 @@
+name: Streamtape mac
+
+on:
+  workflow_dispatch:
+  schedule:
+      - cron: '*/11 * * * *'
+     #- cron: '5,15,25,35,45,55 * * * *'
+
+
+jobs:
+  capture_screenshots:
+    strategy:
+      matrix:
+        runs-on: [ macos-latest,  macos-latest,  macos-latest, macos-latest,  macos-latest ]  # 7 instances
+    runs-on: ${{ matrix.runs-on }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+           python-version: '3.10'
+        
+      - name: Install dependencies
+        run: pip install undetected-chromedriver selenium chromedriver-autoinstaller pyautogui fake-useragent
+      
+      # - name: Before Set up Chrome
+      #   run: chrome --version
+      
+      - name: Set up Chrome
+        uses: browser-actions/setup-chrome@v1
+        id: setup-chrome
+        with:
+          chrome-version: '133'
+          install-dependencies: true
+          install-chromedriver: true
+      
+
+      # - name: Set CHROMEDRIVER_PATH environment variable
+      #   run: |
+      #     echo "CHROMEDRIVER_PATH=${{ steps.setup-chrome.outputs.chrome-path }}/chromedriver" >> $GITHUB_ENV
+
+      - name: Run Selenium script
+        run:  python streamtape_mac.py
+        
+      # - name: Archive screenshots
+      #   uses: actions/upload-artifact@v4
+      #   if: always()
+      #   with:
+      #     name: screenshots
+      #     path: '**/*.png'
